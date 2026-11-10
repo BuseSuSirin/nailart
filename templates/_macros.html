@@ -1,0 +1,78 @@
+{# Birkaç sayfada kullandığım HTML parçaları (makrolar) #}
+
+{% macro stat(label, value, sub="") %}
+  <div class="stat">
+    <div class="label">{{ label }}</div>
+    <div class="value">{{ value }}</div>
+    {% if sub %}<div class="sub">{{ sub }}</div>{% endif %}
+  </div>
+{% endmacro %}
+
+{% macro status_badge(status) %}
+  <span class="badge {{ status }}">{{ STATUS_LABELS[status] }}</span>
+{% endmacro %}
+
+{# Silme butonu: tıklayınca "emin misin?" diye soruyor #}
+{% macro delete_button(action, question, label="Sil") %}
+  <form method="post" action="{{ action }}" onsubmit='return confirm({{ question|tojson }})'>
+    <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+    <button class="btn danger ghost">{{ label }}</button>
+  </form>
+{% endmacro %}
+
+{# Randevu satırı: saat, müşteri, hizmetler, durum ve işlem butonları #}
+{% macro appointment_row(a, show_date=false, show_customer=true) %}
+  <div class="list-item">
+    <div class="time">
+      {% if show_date %}{{ a.start_at|date_short }}<br>{% endif %}{{ a.start_at|clock }}
+    </div>
+    <div class="grow">
+      {% if show_customer %}
+        <div class="title truncate">
+          <a href="{{ url_for('customers.detail', customer_id=a.customer_id) }}">{{ a.customer_name }}</a>
+        </div>
+      {% endif %}
+      <div class="small muted truncate">
+        {{ a.service_names or 'Hizmet seçilmedi' }} · {{ a.duration_min }} dk · {{ a.price|money }}
+      </div>
+      {% if a.notes %}<div class="small truncate">📝 {{ a.notes }}</div>{% endif %}
+    </div>
+    {{ status_badge(a.status) }}
+    <div class="actions">
+      {% if a.status == 'planned' %}
+        {% set link = whatsapp_link(a.customer_phone, reminder_text(a)) %}
+        {% if link %}<a class="btn sm" href="{{ link }}" target="_blank" rel="noopener">Hatırlat</a>{% endif %}
+        <form method="post" action="{{ url_for('appointments.change_status', appointment_id=a.id) }}">
+          <input type="hidden" name="status" value="completed">
+          <input type="hidden" name="next" value="{{ request.full_path }}">
+          <button class="btn sm success">✓ Tamamla</button>
+        </form>
+      {% endif %}
+      <a class="btn sm" href="{{ url_for('appointments.edit', appointment_id=a.id, next=request.full_path) }}">Düzenle</a>
+    </div>
+  </div>
+{% endmacro %}
+
+{# Tasarım kartı: fotoğraf (yoksa renkli arka plan), başlık ve etiketler #}
+{% macro design_card(d, show_customer=true) %}
+  <a class="design-card" href="{{ url_for('designs.detail', design_id=d.id) }}">
+    {% if d.photo %}
+      <img class="design-photo" src="{{ url_for('uploaded_file', filename=d.photo) }}" alt="{{ d.title or 'Tasarım' }}" loading="lazy">
+    {% else %}
+      {% set hue = placeholder_hue(d.title or d.colors) %}
+      <div class="design-placeholder" style="background:linear-gradient(135deg,hsl({{ hue }} 60% 88%),hsl({{ (hue + 40) % 360 }} 55% 78%))">💅</div>
+    {% endif %}
+    <div class="meta">
+      <div class="title truncate">{% if d.favorite %}<span class="fav">★</span> {% endif %}{{ d.title or 'İsimsiz tasarım' }}</div>
+      <div class="small muted truncate">{% if show_customer %}{{ d.customer_name }} · {% endif %}{{ d.date|date_short }}</div>
+      <div class="chips">
+        {% for tag in [d.shape, d.length, d.technique] if tag %}<span class="badge">{{ tag }}</span>{% endfor %}
+      </div>
+    </div>
+  </a>
+{% endmacro %}
+
+{# Formun üstündeki hata kutusu #}
+{% macro form_error(error) %}
+  {% if error %}<p class="form-error">{{ error }}</p>{% endif %}
+{% endmacro %}

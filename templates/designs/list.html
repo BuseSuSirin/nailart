@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Tasarımlar · Nail Art CRM{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>Tasarım galerisi</h1>
+      <div class="muted">{{ designs|length }} / {{ total }} tasarım</div>
+    </div>
+    <div class="actions">
+      <a class="btn primary" href="{{ url_for('designs.new', next=request.full_path) }}">+ Tasarım</a>
+    </div>
+  </div>
+
+  <form method="get" class="card filters">
+    <input class="search" type="search" name="q" value="{{ query }}" placeholder="Renk, teknik, müşteri…" aria-label="Tasarım ara">
+    <select name="shape" aria-label="Şekil">
+      <option value="">Tüm şekiller</option>
+      {% for s in SHAPES %}<option {{ 'selected' if s == shape }}>{{ s }}</option>{% endfor %}
+    </select>
+    <label class="check"><input type="checkbox" name="favorite" value="1" {{ 'checked' if only_favorites }}> ★ Sadece favoriler</label>
+    <button class="btn">Filtrele</button>
+    {% if query or shape or only_favorites %}<a class="btn ghost" href="{{ url_for('designs.index') }}">Temizle</a>{% endif %}
+  </form>
+
+  <div class="gallery">
+    {% for d in designs %}
+      {{ ui.design_card(d) }}
+    {% else %}
+      <div class="empty card">Eşleşen tasarım yok</div>
+    {% endfor %}
+  </div>
+{% endblock %}

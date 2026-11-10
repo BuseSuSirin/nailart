@@ -1,0 +1,2 @@
+Flask>=3.1
+gunicorn>=23   # sunucuda uygulamayı çalıştıran üretim web sunucusu (Windows'ta gerekmez)

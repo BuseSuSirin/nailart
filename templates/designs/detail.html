@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}{{ design.title or 'Tasarım' }} · Nail Art CRM{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>{% if design.favorite %}<span class="fav">★</span> {% endif %}{{ design.title or 'İsimsiz tasarım' }}</h1>
+      <div class="muted">
+        <a href="{{ url_for('customers.detail', customer_id=design.customer_id) }}">{{ design.customer_name }}</a> · {{ design.date|date_long }}
+      </div>
+    </div>
+    <div class="actions">
+      {{ ui.delete_button(url_for('designs.delete', design_id=design.id), 'Bu tasarım ve fotoğrafı silinsin mi?') }}
+      <a class="btn" href="{{ url_for('designs.edit', design_id=design.id) }}">Düzenle</a>
+      {# "Aynısını yap": bu tasarıma göre yeni randevu formu açıyor #}
+      <a class="btn primary" href="{{ url_for('appointments.new', customer_id=design.customer_id,
+            notes='Tekrar: "' ~ (design.title or 'tasarım') ~ '" (' ~ design.date|date_short ~ ')') }}">Aynısını yap → randevu</a>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <section class="card">
+      {% if design.photo %}
+        <img class="design-large" src="{{ url_for('uploaded_file', filename=design.photo) }}" alt="{{ design.title or 'Tasarım' }}">
+      {% else %}
+        {% set hue = placeholder_hue(design.title or design.colors) %}
+        <div class="design-placeholder rounded" style="background:linear-gradient(135deg,hsl({{ hue }} 60% 88%),hsl({{ (hue + 40) % 360 }} 55% 78%))">💅</div>
+        <p class="small muted">Fotoğraf eklenmemiş. "Düzenle" ile ekleyebilirsin.</p>
+      {% endif %}
+    </section>
+    <section class="card">
+      <dl class="kv">
+        <dt>Şekil</dt><dd>{{ design.shape or '—' }}</dd>
+        <dt>Uzunluk</dt><dd>{{ design.length or '—' }}</dd>
+        <dt>Renkler</dt><dd>{{ design.colors or '—' }}</dd>
+        <dt>Teknik</dt><dd>{{ design.technique or '—' }}</dd>
+        <dt>Ürünler</dt><dd>{{ design.products or '—' }}</dd>
+        <dt>Not</dt><dd>{{ design.notes or '—' }}</dd>
+      </dl>
+    </section>
+  </div>
+{% endblock %}

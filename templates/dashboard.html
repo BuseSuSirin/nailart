@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>Merhaba 💅</h1>
+      <div class="muted">{{ today()|day_month }}</div>
+    </div>
+    <div class="actions">
+      <a class="btn" href="{{ url_for('customers.new') }}">+ Müşteri</a>
+      <a class="btn primary" href="{{ url_for('appointments.new', date=today(), next=request.full_path) }}">+ Randevu</a>
+    </div>
+  </div>
+
+  <div class="stats">
+    {{ ui.stat('Bugünkü randevu', todays_appointments|rejectattr('status', 'eq', 'cancelled')|list|length) }}
+    {{ ui.stat('Bu hafta', stats.week_appointments, 'planlı + tamamlanan') }}
+    {{ ui.stat('Bu ay ciro', stats.month_revenue|money, 'tamamlanan randevular') }}
+    {{ ui.stat('Müşteri', stats.customers, stats.new_customers ~ ' yeni bu ay') }}
+  </div>
+
+  <div class="grid-2">
+    <section class="card">
+      <h2>Bugün</h2>
+      <div class="list">
+        {% for a in todays_appointments %}
+          {{ ui.appointment_row(a) }}
+        {% else %}
+          <div class="empty">Bugün randevu yok</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Dolgu / bakım zamanı gelenler</h2>
+      <p class="small muted card-sub">Son ziyaretinin üzerinden {{ refill_days }}+ gün geçmiş ve planlı randevusu olmayanlar</p>
+      <div class="list">
+        {% for c in refill_due %}
+          <div class="list-item">
+            <div class="grow">
+              <div class="title truncate"><a href="{{ url_for('customers.detail', customer_id=c.id) }}">{{ c.name }}</a></div>
+              <div class="small muted">Son ziyaret: {{ c.last_visit|date_short }}</div>
+            </div>
+            <span class="badge {{ 'no_show' if c.days >= refill_days * 2 else 'warn' }}">{{ c.days }} gün</span>
+            {% set link = whatsapp_link(c.phone, 'Merhaba ' ~ first_name(c.name) ~ ', tırnaklarının bakım zamanı geldi 💅 Sana uygun bir gün ayarlayalım mı?') %}
+            {% if link %}<a class="btn sm" href="{{ link }}" target="_blank" rel="noopener">Mesaj</a>{% endif %}
+            <a class="btn sm" href="{{ url_for('appointments.new', customer_id=c.id, next=request.full_path) }}">Randevu</a>
+          </div>
+        {% else %}
+          <div class="empty">Herkes güncel 🎉</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Yaklaşan doğum günleri</h2>
+      <div class="list">
+        {% for c in birthdays %}
+          <div class="list-item">
+            <div class="grow">
+              <div class="title truncate"><a href="{{ url_for('customers.detail', customer_id=c.id) }}">{{ c.name }}</a></div>
+              <div class="small muted">{{ c.next|day_month }}</div>
+            </div>
+            <span class="badge {{ 'planned' if c.in_days == 0 }}">{{ 'Bugün 🎂' if c.in_days == 0 else c.in_days ~ ' gün' }}</span>
+            {% set link = whatsapp_link(c.phone, 'Doğum günün kutlu olsun ' ~ first_name(c.name) ~ '! 🎂 Bu aya özel tasarımda %10 indirimin var 💅') %}
+            {% if link %}<a class="btn sm" href="{{ link }}" target="_blank" rel="noopener">Kutla</a>{% endif %}
+          </div>
+        {% else %}
+          <div class="empty">Önümüzdeki 30 günde doğum günü yok</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Bu ayın popüler hizmetleri</h2>
+      <div class="list">
+        {% for s in top_services %}
+          <div class="list-item"><div class="grow">{{ s.name }}</div><strong>{{ s.times }}</strong></div>
+        {% else %}
+          <div class="empty">Bu ay henüz tamamlanan randevu yok</div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+{% endblock %}

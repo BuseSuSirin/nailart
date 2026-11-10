@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Randevu · Nail Art CRM{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>{{ 'Randevuyu düzenle' if appointment_id else 'Yeni randevu' }}</h1>
+    {% if appointment_id %}
+      {{ ui.delete_button(url_for('appointments.delete', appointment_id=appointment_id), 'Bu randevu silinsin mi?') }}
+    {% endif %}
+  </div>
+
+  <form class="card form-card" method="post">
+    <input type="hidden" name="next" value="{{ next_url }}">
+    {{ ui.form_error(error) }}
+    {% if conflict %}
+      <label class="check warn-box"><input type="checkbox" name="force" value="1"> Çakışmaya rağmen kaydet</label>
+    {% endif %}
+
+    <label>Müşteri
+      <select name="customer_id" required>
+        <option value="">Müşteri seçin…</option>
+        {% for c in customers %}
+          <option value="{{ c.id }}" {{ 'selected' if c.id == form.customer_id }}>{{ c.name }}{% if c.phone %} · {{ c.phone }}{% endif %}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <a class="inline-link" href="{{ url_for('customers.new') }}">+ Listede yoksa önce yeni müşteri ekle</a>
+
+    <div class="row">
+      <label>Tarih<input type="date" name="date" value="{{ form.date }}" required></label>
+      <label>Saat<input type="time" name="time" value="{{ form.time }}" step="300" required></label>
+    </div>
+
+    <fieldset class="services-pick">
+      <legend>Hizmetler</legend>
+      {% for s in services %}
+        <label class="check">
+          <input type="checkbox" name="service_ids" value="{{ s.id }}" {{ 'checked' if s.id in form.service_ids }}>
+          {{ s.name }} <span class="muted small">{{ s.duration_min }} dk · {{ s.price|money }}</span>
+        </label>
+      {% endfor %}
+    </fieldset>
+
+    <div class="row">
+      <label>Süre (dk)<input type="number" name="duration_min" min="5" step="5" value="{{ form.duration_min }}" placeholder="Otomatik"></label>
+      <label>Ücret (₺)<input type="number" name="price" min="0" step="any" value="{{ form.price }}" placeholder="Otomatik"></label>
+      <label>Durum
+        <select name="status">
+          {% for key, label in STATUS_LABELS.items() %}
+            <option value="{{ key }}" {{ 'selected' if key == form.status }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <p class="small muted hint">Süre veya ücreti boş bırakırsan seçtiğin hizmetlerden otomatik hesaplanır.</p>
+
+    <label>Not<textarea name="notes" rows="2" placeholder="Örn. referans fotoğraf getirecek">{{ form.notes }}</textarea></label>
+
+    <div class="form-actions">
+      <span class="spacer"></span>
+      <a class="btn ghost" href="{{ next_url or url_for('appointments.week') }}">Vazgeç</a>
+      <button class="btn primary">Kaydet</button>
+    </div>
+  </form>
+{% endblock %}

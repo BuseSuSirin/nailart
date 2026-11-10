@@ -1,0 +1,40 @@
+{# Bütün sayfalarda ortak olan kısım: menü, mesajlar ve sayfanın içeriği #}
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Nail Art CRM{% endblock %}</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💅</text></svg>">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  {% if session.logged_in %}
+  <aside class="sidebar">
+    <div class="brand">💅 <span>Nail Art CRM</span></div>
+    <nav>
+      {% for blueprint, label in [('dashboard', 'Panel'), ('appointments', 'Randevular'), ('customers', 'Müşteriler'),
+                                  ('designs', 'Tasarımlar'), ('services', 'Hizmetler')] %}
+        <a href="{{ url_for(blueprint ~ ('.week' if blueprint == 'appointments' else '.index')) }}"
+           class="{{ 'active' if request.blueprint == blueprint }}">{{ label }}</a>
+      {% endfor %}
+    </nav>
+    <div class="sidebar-foot">
+      <a class="btn ghost sm" href="{{ url_for('auth.change_password') }}">Şifre değiştir</a>
+      <form method="post" action="{{ url_for('auth.logout') }}">
+        <button class="btn ghost sm">Çıkış</button>
+      </form>
+    </div>
+  </aside>
+  {% endif %}
+
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Randevular · Nail Art CRM{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>Randevular</h1>
+      <div class="muted">{{ start|date_short }} – {{ end|date_short }} · {{ count }} randevu · {{ revenue|money }} ciro</div>
+    </div>
+    <div class="actions">
+      <a class="btn" href="{{ url_for('appointments.week', week=previous_week) }}" aria-label="Önceki hafta">‹</a>
+      <a class="btn" href="{{ url_for('appointments.week') }}">Bu hafta</a>
+      <a class="btn" href="{{ url_for('appointments.week', week=next_week) }}" aria-label="Sonraki hafta">›</a>
+      <a class="btn primary" href="{{ url_for('appointments.new', next=request.full_path) }}">+ Randevu</a>
+    </div>
+  </div>
+
+  <div class="week">
+    {% for day in days %}
+      <div class="day {{ 'today' if day.date == today() }}">
+        <div class="day-head">
+          <span class="d">{{ WEEKDAYS_SHORT[loop.index0] }}</span>
+          <span class="muted small">{{ day.date|date_short }}</span>
+        </div>
+        <div class="day-body">
+          {% for a in day.appointments %}
+            <a class="appt {{ a.status }}" href="{{ url_for('appointments.edit', appointment_id=a.id, next=request.full_path) }}"
+               title="{{ STATUS_LABELS[a.status] }}">
+              <div><span class="t">{{ a.start_at|clock }}</span> · {{ a.duration_min }} dk</div>
+              <div class="truncate"><strong>{{ a.customer_name }}</strong></div>
+              <div class="truncate muted">{{ a.service_names or '' }}</div>
+            </a>
+          {% endfor %}
+          <a class="add-day" href="{{ url_for('appointments.new', date=day.date, next=request.full_path) }}">+ ekle</a>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endblock %}

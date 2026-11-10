@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Şifre belirle · Nail Art CRM{% endblock %}
+{% block body_class %}locked{% endblock %}
+{% block content %}
+  <form class="card login-card" method="post">
+    <div class="brand">💅 Nail Art CRM</div>
+    {% if allowed %}
+      <p class="muted">Hoş geldin! Uygulamayı korumak için bir şifre belirle.</p>
+      {{ ui.form_error(error) }}
+      <label>Yeni şifre<input type="password" name="password" required minlength="8" autocomplete="new-password" autofocus></label>
+      <label>Şifre (tekrar)<input type="password" name="confirm" required autocomplete="new-password"></label>
+      <button class="btn primary">Şifreyi kaydet ve başla</button>
+    {% else %}
+      <p class="muted">Henüz şifre belirlenmemiş. Güvenlik için ilk şifre internetten belirlenemez:
+        uygulamanın çalıştığı bilgisayarda <strong>http://localhost</strong> adresinden ya da sunucuda
+        <code>python set_password.py</code> komutuyla belirlenir.</p>
+    {% endif %}
+  </form>
+{% endblock %}

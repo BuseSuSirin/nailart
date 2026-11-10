@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Hizmet · Nail Art CRM{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>{{ 'Hizmeti düzenle' if service_id else 'Yeni hizmet' }}</h1>
+    {% if service_id %}
+      {{ ui.delete_button(url_for('services.delete', service_id=service_id),
+                          'Bu hizmet silinsin mi? Geçmiş randevularda kullanıldıysa yalnızca pasife alınır.') }}
+    {% endif %}
+  </div>
+
+  <form class="card form-card" method="post">
+    {{ ui.form_error(error) }}
+    <label>Hizmet adı<input name="name" value="{{ form.name or '' }}" required autofocus></label>
+    <label>Kategori<input name="category" list="categories" value="{{ form.category or '' }}"></label>
+    <datalist id="categories">{% for c in categories %}<option value="{{ c }}">{% endfor %}</datalist>
+    <div class="row">
+      <label>Süre (dk)<input type="number" name="duration_min" min="5" step="5" value="{{ form.duration_min }}" required></label>
+      <label>Fiyat (₺)<input type="number" name="price" min="0" step="any" value="{{ form.price }}" required></label>
+    </div>
+    <label class="check"><input type="checkbox" name="active" value="1" {{ 'checked' if form.active }}> Aktif (randevu formunda görünsün)</label>
+
+    <div class="form-actions">
+      <span class="spacer"></span>
+      <a class="btn ghost" href="{{ url_for('services.index') }}">Vazgeç</a>
+      <button class="btn primary">Kaydet</button>
+    </div>
+  </form>
+{% endblock %}

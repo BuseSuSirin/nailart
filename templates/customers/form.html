@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Müşteri · Nail Art CRM{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>{{ 'Müşteriyi düzenle' if customer_id else 'Yeni müşteri' }}</h1>
+    {% if customer_id %}
+      {{ ui.delete_button(url_for('customers.delete', customer_id=customer_id),
+                          'Bu müşteri ve tüm randevu/tasarım geçmişi kalıcı olarak silinsin mi?') }}
+    {% endif %}
+  </div>
+
+  <form class="card form-card" method="post">
+    {{ ui.form_error(error) }}
+    <label>Ad soyad<input name="name" value="{{ form.name or '' }}" required autofocus></label>
+    <div class="row">
+      <label>Telefon<input name="phone" type="tel" value="{{ form.phone or '' }}" placeholder="05xx xxx xx xx"></label>
+      <label>Instagram<input name="instagram" value="{{ form.instagram or '' }}" placeholder="kullaniciadi"></label>
+    </div>
+    <div class="row">
+      <label>E-posta<input name="email" type="email" value="{{ form.email or '' }}"></label>
+      <label>Doğum günü<input name="birthday" type="date" value="{{ form.birthday or '' }}"></label>
+    </div>
+    <label>Sağlık / hassasiyet notu
+      <textarea name="nail_notes" rows="2" placeholder="Alerji, kırılgan tırnak, mantar geçmişi…">{{ form.nail_notes or '' }}</textarea>
+    </label>
+    <label>Tercihleri
+      <textarea name="preferences" rows="2" placeholder="Sevdiği renkler, şekil, uzunluk…">{{ form.preferences or '' }}</textarea>
+    </label>
+    <label>Notlar<textarea name="notes" rows="2">{{ form.notes or '' }}</textarea></label>
+
+    <div class="form-actions">
+      <span class="spacer"></span>
+      <a class="btn ghost" href="{{ url_for('customers.detail', customer_id=customer_id) if customer_id else url_for('customers.index') }}">Vazgeç</a>
+      <button class="btn primary">Kaydet</button>
+    </div>
+  </form>
+{% endblock %}

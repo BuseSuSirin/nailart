@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}{{ customer.name }} · Nail Art CRM{% endblock %}
+{% block content %}
+  {% set handle = (customer.instagram or '').lstrip('@') %}
+  {% set wa = whatsapp_link(customer.phone) %}
+
+  <div class="page-head">
+    <div class="profile-head">
+      <div class="avatar">{{ initials(customer.name) }}</div>
+      <div>
+        <h1>{{ customer.name }}</h1>
+        <div class="contact">
+          {% if customer.phone %}<a href="tel:{{ customer.phone|replace(' ', '') }}">📞 {{ customer.phone }}</a>{% endif %}
+          {% if wa %}<a href="{{ wa }}" target="_blank" rel="noopener">💬 WhatsApp</a>{% endif %}
+          {% if handle %}<a href="https://instagram.com/{{ handle }}" target="_blank" rel="noopener">📷 @{{ handle }}</a>{% endif %}
+          {% if customer.email %}<a href="mailto:{{ customer.email }}">✉️ {{ customer.email }}</a>{% endif %}
+          {% if customer.birthday %}<span>🎂 {{ customer.birthday|date_long }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="btn" href="{{ url_for('customers.edit', customer_id=customer.id) }}">Düzenle</a>
+      <a class="btn" href="{{ url_for('designs.new', customer_id=customer.id, next=request.full_path) }}">+ Tasarım</a>
+      <a class="btn primary" href="{{ url_for('appointments.new', customer_id=customer.id, next=request.full_path) }}">+ Randevu</a>
+    </div>
+  </div>
+
+  <div class="stats">
+    {{ ui.stat('Ziyaret', stats.visits,
+               (stats.no_shows ~ ' gelmedi · ' ~ stats.cancellations ~ ' iptal') if stats.no_shows or stats.cancellations else '') }}
+    {{ ui.stat('Toplam harcama', stats.total_spent|money,
+               ('ort. ' ~ stats.average_spent|money ~ ' / ziyaret') if stats.visits else '') }}
+    {{ ui.stat('Son ziyaret', stats.last_visit|days_ago if stats.last_visit else '—',
+               stats.last_visit|date_short if stats.last_visit else '') }}
+    {{ ui.stat('Ziyaret sıklığı', (stats.average_interval ~ ' gün') if stats.average_interval else '—',
+               'ortalama aralık' if stats.average_interval else 'en az 2 ziyaret gerekir') }}
+  </div>
+
+  <div class="grid-2 section-gap">
+    <section class="card stack">
+      {% if customer.nail_notes %}
+        <div class="alert"><strong>⚠ Sağlık / hassasiyet notu</strong>{{ customer.nail_notes }}</div>
+      {% endif %}
+      <dl class="kv">
+        <dt>Tercihleri</dt><dd>{{ customer.preferences or '—' }}</dd>
+        <dt>Sık aldığı</dt>
+        <dd>{% for name, times in stats.favorite_services %}{{ name }} ({{ times }}){{ ', ' if not loop.last }}{% else %}—{% endfor %}</dd>
+        <dt>Notlar</dt><dd>{{ customer.notes or '—' }}</dd>
+        <dt>Kayıt</dt><dd>{{ customer.created_at|date_short }}</dd>
+      </dl>
+    </section>
+    <section class="card">
+      <h2>Yaklaşan randevular</h2>
+      <div class="list">
+        {% for a in upcoming %}
+          {{ ui.appointment_row(a, show_date=true, show_customer=false) }}
+        {% else %}
+          <div class="empty">Planlı randevu yok</div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+
+  <section class="card">
+    <nav class="tabs">
+      <a class="{{ 'active' if tab != 'history' }}" href="{{ url_for('customers.detail', customer_id=customer.id) }}">Tasarım geçmişi ({{ designs|length }})</a>
+      <a class="{{ 'active' if tab == 'history' }}" href="{{ url_for('customers.detail', customer_id=customer.id, tab='history') }}">Randevu geçmişi ({{ appointments|length }})</a>
+    </nav>
+    {% if tab == 'history' %}
+      <div class="list">
+        {% for a in appointments %}
+          {{ ui.appointment_row(a, show_date=true, show_customer=false) }}
+        {% else %}
+          <div class="empty">Randevu yok</div>
+        {% endfor %}
+      </div>
+    {% elif designs %}
+      <div class="gallery">
+        {% for d in designs %}{{ ui.design_card(d, show_customer=false) }}{% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">Henüz kayıtlı tasarım yok. Randevu tamamlandığında fotoğrafını ekleyebilirsin.</div>
+    {% endif %}
+  </section>
+{% endblock %}

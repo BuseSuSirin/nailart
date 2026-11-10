@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% import "_macros.html" as ui with context %}
+{% block title %}Tasarım · Nail Art CRM{% endblock %}
+{% block content %}
+  <div class="page-head"><h1>{{ 'Tasarımı düzenle' if design_id else 'Yeni tasarım' }}</h1></div>
+
+  {# enctype="multipart/form-data": formla dosya (fotoğraf) gönderebilmek için lazım #}
+  <form class="card form-card wide" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="next" value="{{ next_url }}">
+    {{ ui.form_error(error) }}
+
+    <div class="row">
+      <label>Müşteri
+        <select name="customer_id" required>
+          <option value="">Müşteri seçin…</option>
+          {% for c in customers %}
+            <option value="{{ c.id }}" {{ 'selected' if c.id == form.customer_id }}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Randevu
+        <select name="appointment_id">
+          <option value="">Bağlama</option>
+          {% for a in appointments %}
+            <option value="{{ a.id }}" {{ 'selected' if a.id == form.appointment_id }}>
+              {{ a.start_at|date_short }} · {{ a.start_at|clock }} · {{ a.service_names or '' }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    {% if not form.customer_id %}
+      <p class="small muted hint">Randevuya bağlamak için tasarımı müşterinin profilinden ekle.</p>
+    {% endif %}
+
+    <div class="row">
+      <label>Başlık<input name="title" value="{{ form.title or '' }}" placeholder="Örn. Nude ombre + altın varak"></label>
+      <label>Tarih<input type="date" name="date" value="{{ form.date or '' }}" required></label>
+    </div>
+    <div class="row">
+      <label>Şekil
+        <select name="shape">
+          <option value="">—</option>
+          {% for s in SHAPES %}<option {{ 'selected' if s == form.shape }}>{{ s }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Uzunluk
+        <select name="length">
+          <option value="">—</option>
+          {% for l in LENGTHS %}<option {{ 'selected' if l == form.length }}>{{ l }}</option>{% endfor %}
+        </select>
+      </label>
+      <label>Teknik<input name="technique" list="techniques" value="{{ form.technique or '' }}"></label>
+    </div>
+    <datalist id="techniques">{% for t in TECHNIQUES %}<option value="{{ t }}">{% endfor %}</datalist>
+
+    <label>Renkler<input name="colors" value="{{ form.colors or '' }}" placeholder="Nude, altın…"></label>
+    <label>Kullanılan ürünler / renk kodları<input name="products" value="{{ form.products or '' }}" placeholder="Marka + renk no, top coat…"></label>
+
+    <label>Fotoğraf<input type="file" name="photo" accept="image/*"></label>
+    {% if form.photo %}
+      <img class="photo-preview" src="{{ url_for('uploaded_file', filename=form.photo) }}" alt="Mevcut fotoğraf">
+      <label class="check"><input type="checkbox" name="remove_photo" value="1"> Mevcut fotoğrafı kaldır</label>
+    {% endif %}
+
+    <label>Not<textarea name="notes" rows="2">{{ form.notes or '' }}</textarea></label>
+    <label class="check"><input type="checkbox" name="favorite" value="1" {{ 'checked' if form.favorite }}> ★ Favori tasarım (portfolyo)</label>
+
+    <div class="form-actions">
+      <span class="spacer"></span>
+      <a class="btn ghost" href="{{ next_url or (url_for('designs.detail', design_id=design_id) if design_id else url_for('designs.index')) }}">Vazgeç</a>
+      <button class="btn primary">Kaydet</button>
+    </div>
+  </form>
+{% endblock %}

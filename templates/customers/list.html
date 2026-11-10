@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Müşteriler · Nail Art CRM{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>Müşteriler</h1>
+      <div class="muted">{{ total }} kayıtlı müşteri</div>
+    </div>
+    <div class="actions">
+      <form method="get" class="search-form">
+        <input class="search" type="search" name="q" value="{{ query }}" placeholder="İsim, telefon, Instagram…" aria-label="Müşteri ara">
+        <button class="btn">Ara</button>
+      </form>
+      <a class="btn primary" href="{{ url_for('customers.new') }}">+ Müşteri</a>
+    </div>
+  </div>
+
+  <div class="card table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Müşteri</th><th class="hide-sm">Telefon</th><th class="num">Ziyaret</th>
+          <th class="hide-sm">Son ziyaret</th><th class="hide-sm">Sonraki randevu</th><th class="num">Toplam</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in customers %}
+          <tr>
+            <td>
+              <a class="row-link" href="{{ url_for('customers.detail', customer_id=c.id) }}"><strong>{{ c.name }}</strong></a>
+              {% if c.nail_notes %}<span class="badge warn" title="Sağlık notu var">⚠</span>{% endif %}
+              {% if c.instagram %}<div class="small muted">@{{ c.instagram }}</div>{% endif %}
+            </td>
+            <td class="hide-sm">{{ c.phone or '—' }}</td>
+            <td class="num">{{ c.visits }}</td>
+            <td class="hide-sm">
+              {% if c.last_visit %}{{ c.last_visit|date_short }} <span class="small muted">({{ c.last_visit|days_ago }})</span>{% else %}—{% endif %}
+            </td>
+            <td class="hide-sm">{% if c.next_appointment %}{{ c.next_appointment|date_short }} · {{ c.next_appointment|clock }}{% else %}—{% endif %}</td>
+            <td class="num">{{ c.total_spent|money }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6" class="empty">{{ 'Sonuç bulunamadı' if query else 'Henüz müşteri yok' }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

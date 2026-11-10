@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Hizmetler · Nail Art CRM{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <div>
+      <h1>Hizmetler</h1>
+      <div class="muted">Fiyat listesi ve süreler. Randevu oluştururken otomatik hesaplanır.</div>
+    </div>
+    <div class="actions"><a class="btn primary" href="{{ url_for('services.new') }}">+ Hizmet</a></div>
+  </div>
+
+  <div class="stack">
+    {% for category, services in groups.items() %}
+      <section class="card table-wrap">
+        <h2>{{ category }}</h2>
+        <table>
+          <thead><tr><th>Hizmet</th><th class="num">Süre</th><th class="num">Fiyat</th><th class="num hide-sm">Kullanım</th><th></th></tr></thead>
+          <tbody>
+            {% for s in services %}
+              <tr class="{{ 'inactive' if not s.active }}">
+                <td><strong>{{ s.name }}</strong> {% if not s.active %}<span class="badge">Pasif</span>{% endif %}</td>
+                <td class="num">{{ s.duration_min }} dk</td>
+                <td class="num">{{ s.price|money }}</td>
+                <td class="num hide-sm">{{ s.usage }}</td>
+                <td class="num"><a class="btn sm" href="{{ url_for('services.edit', service_id=s.id) }}">Düzenle</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+    {% else %}
+      <div class="card empty">Henüz hizmet yok</div>
+    {% endfor %}
+  </div>
+{% endblock %}
